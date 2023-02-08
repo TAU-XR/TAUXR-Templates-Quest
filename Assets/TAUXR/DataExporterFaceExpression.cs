@@ -45,7 +45,7 @@ public class DataExporterFaceExpression : MonoBehaviour
             Directory.CreateDirectory(dir);
 
         // init StreamWriter
-        writer = new StreamWriter(path, true);
+        writer = new StreamWriter(path, false);
         writer.WriteLine(firstLine);
     }
 
