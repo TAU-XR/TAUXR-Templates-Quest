@@ -20,7 +20,8 @@ public class DataExporterFaceExpression : MonoBehaviour
 
     private void FixedUpdate()
     {
-                
+        if (OVRFace.ValidExpressions)
+            CollectWriteDataToFile();
     }
 
     public void InitRecorder()
@@ -45,7 +46,7 @@ public class DataExporterFaceExpression : MonoBehaviour
             Directory.CreateDirectory(dir);
 
         // init StreamWriter
-        writer = new StreamWriter(path, false);
+        writer = new StreamWriter(path, true);
         writer.WriteLine(firstLine);
     }
 
@@ -58,8 +59,8 @@ public class DataExporterFaceExpression : MonoBehaviour
         string nextLine = $"{Time.time}";
 
         // write all weights to line
-        foreach (float w in AllWeights)
-            nextLine += $",{w}";
+        for (int i = 0; i < AllWeights.Length; i++)
+            nextLine += $",{AllWeights[i]}";
 
         // write to file
         writer.WriteLine(nextLine);
@@ -72,7 +73,7 @@ public class DataExporterFaceExpression : MonoBehaviour
 
         writer.Flush();
         writer.Close();
-    }   
+    }
 
     private string getPath()
     {

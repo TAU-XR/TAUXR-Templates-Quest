@@ -9,34 +9,35 @@ public class OVRSkeletonPlayFromData : MonoBehaviour
     public string DataPathFolderName;
     public int currentFrame = 0;
     public bool bPlay = false;
-
+    public int loadBonesPerFrame = 1;
+    int loadedBones = 0;
     string[] paths;
 
     public List<Vector3>[] BonesPositions;
     public List<Quaternion>[] BonesRotations;
     public List<Vector3>[] BonesScales;
 
+    int frameCount = 0;
     List<Transform> skeletonBones;
     void Start()
     {
-        skeletonBones = skeletonToPlayOn.CustomBones;
-        LoadRecordedDataToLists();
+        StartCoroutine(LoadRecordedDataToLists());
         bPlay = false;
     }
 
     void Update()
     {
-        if(bPlay)
+        if (bPlay)
             PlaySkeletonData();
     }
 
-    public void LoadRecordedDataToLists()
+    IEnumerator LoadRecordedDataToLists()
     {
         // validate a data folder was entered.
-        if(DataPathFolderName == null)
+        if (DataPathFolderName == null)
         {
             Debug.LogError("Recorded skeleton data path is empty. Please select your data folder");
-            return;
+            yield break;
         }
 
         // get to the skeleton data folder
@@ -46,19 +47,19 @@ public class OVRSkeletonPlayFromData : MonoBehaviour
             Debug.LogError("Recorded skeleton data not found -> check your path");
 
         // init list arrays to the size of bones.
-        BonesPositions = new List<Vector3>[skeletonToPlayOn.CustomBones.Count];
-        BonesRotations = new List<Quaternion>[skeletonToPlayOn.CustomBones.Count];
-        BonesScales = new List<Vector3>[skeletonToPlayOn.CustomBones.Count];
+        BonesPositions = new List<Vector3>[skeletonToPlayOn.Bones.Count];
+        BonesRotations = new List<Quaternion>[skeletonToPlayOn.Bones.Count];
+        BonesScales = new List<Vector3>[skeletonToPlayOn.Bones.Count];
 
-        paths = new string[skeletonToPlayOn.CustomBones.Count];
+        paths = new string[skeletonToPlayOn.Bones.Count];
 
 
-        for (int boneIndex = 0; boneIndex < skeletonToPlayOn.CustomBones.Count; boneIndex++)
+        for (int boneIndex = 0; boneIndex < skeletonToPlayOn.Bones.Count; boneIndex++)
         {
-
+            loadedBones++;
             // init all paths to their indexes
             paths[boneIndex] = SkeletonDataFolderPath + $"BoneRecording_{boneIndex}.csv";
-            if(!File.Exists(paths[boneIndex]))
+            if (!File.Exists(paths[boneIndex]))
             {
                 Debug.LogWarning($"Couldn't find data file BoneRecording_{boneIndex}. Could not load data for this bone");
                 break;
@@ -83,25 +84,34 @@ public class OVRSkeletonPlayFromData : MonoBehaviour
 
                 Vector3 pos = new Vector3(float.Parse(lineData[0]), float.Parse(lineData[1]), float.Parse(lineData[2]));
                 Quaternion rot = new Quaternion(float.Parse(lineData[3]), float.Parse(lineData[4]), float.Parse(lineData[5]), float.Parse(lineData[6]));
-                Vector3 scl = new Vector3(float.Parse(lineData[7]), float.Parse(lineData[8]), float.Parse(lineData[9]));
+                Vector3 scl = new Vector3(1f, 1f, 1f);
+                //Vector3 scl = new Vector3(float.Parse(lineData[7]), float.Parse(lineData[8]), float.Parse(lineData[9])); - for some reason it makes problems.
 
                 BonesPositions[boneIndex].Add(pos);
                 BonesRotations[boneIndex].Add(rot);
                 BonesScales[boneIndex].Add(scl);
             }
+            //yield return null;
+            Debug.Log($" Total Bones Loaded: {loadedBones}. Loaded Bone_{boneIndex}.");
         }
+
+        frameCount = BonesPositions[0].Count;
         Debug.Log($"Total Lists: {BonesPositions.Length}. Total Frames {BonesPositions[0].Count}. Successfully loaded recorded data to lists. ");
     }
 
     public void PlaySkeletonData()
     {
-        for (int boneIndex = 0; boneIndex < skeletonBones.Count; boneIndex++)
+        if (currentFrame >= frameCount)
+            return;
+
+        for (int boneIndex = 0; boneIndex < skeletonToPlayOn.Bones.Count; boneIndex++)
         {
-            skeletonBones[boneIndex].localPosition = BonesPositions[boneIndex][currentFrame];
-            skeletonBones[boneIndex].localRotation = BonesRotations[boneIndex][currentFrame];
-            skeletonBones[boneIndex].localScale = BonesScales[boneIndex][currentFrame];
+            skeletonToPlayOn.Bones[boneIndex].Transform.localPosition = BonesPositions[boneIndex][currentFrame];
+            skeletonToPlayOn.Bones[boneIndex].Transform.localRotation = BonesRotations[boneIndex][currentFrame];
+            skeletonToPlayOn.Bones[boneIndex].Transform.localScale = BonesScales[boneIndex][currentFrame];
         }
 
         currentFrame++;
+
     }
 }

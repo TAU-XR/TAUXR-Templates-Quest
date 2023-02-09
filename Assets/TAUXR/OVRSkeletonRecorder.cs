@@ -29,7 +29,7 @@ public class OVRSkeletonRecorder : MonoBehaviour
 
     void LateUpdate()
     {
-        if(IsRecording)
+        if (IsRecording)
         {
             RecordSkeletonData();
         }
@@ -37,7 +37,7 @@ public class OVRSkeletonRecorder : MonoBehaviour
 
     public void InitRecording()
     {
-        if(skeletonToRecord == null)
+        if (skeletonToRecord == null)
         {
             Debug.LogWarning("No skeleton found -> Can't record");
             return;
@@ -64,13 +64,25 @@ public class OVRSkeletonRecorder : MonoBehaviour
 
     public void RecordSkeletonData()
     {
-        for (int i = 0; i < skeletonToRecord.CustomBones.Count; i++)
+        if (skeletonToRecord.IsDataHighConfidence)
         {
-            Vector3 pos = skeletonToRecord.CustomBones[i].localPosition;
-            Quaternion rot = skeletonToRecord.CustomBones[i].localRotation;
-            Vector3 scl = skeletonToRecord.CustomBones[i].localScale;
+            for (int i = 0; i < skeletonToRecord.CustomBones.Count; i++)
+            {
+                Vector3 pos = skeletonToRecord.Bones[i].Transform.localPosition;
+                Quaternion rot = skeletonToRecord.Bones[i].Transform.localRotation;
+                Vector3 scl = skeletonToRecord.Bones[i].Transform.localScale;
 
-            writers[i].WriteLine($"{pos.x},{pos.y},{pos.z},{rot.x},{rot.y},{rot.z},{rot.w},{scl.x},{scl.y},{scl.z}");
+                writers[i].WriteLine($"{pos.x},{pos.y},{pos.z},{rot.x},{rot.y},{rot.z},{rot.w},{scl.x},{scl.y},{scl.z}");
+            }
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        foreach (StreamWriter w in writers)
+        {
+            w.Flush();
+            w.Close();
         }
     }
 }
