@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.meta.movement": {
+      "version": "file:C:/Users/tausx/Desktop/Unity-Movement-1.3.3",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.6"
+      }
+    },
     "com.unity.burst": {
       "version": "1.8.2",
       "depth": 1,
